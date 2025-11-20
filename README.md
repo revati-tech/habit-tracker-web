@@ -1,36 +1,143 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌿 Habit Tracker — Frontend
 
-## Getting Started
+A modern, responsive **Next.js + TypeScript** frontend for the Habit Tracker application.  
+Connects to the Spring Boot backend for authentication, habit management, and habit completion tracking.
 
-First, run the development server:
+## 🚀 Tech Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+| Layer | Technology |
+|-------|------------|
+| Framework | **Next.js 14+ (App Router)** |
+| Language | **TypeScript** |
+| UI | **Tailwind CSS** |
+| HTTP Client | **Axios** |
+| Auth | JWT tokens (stored in HTTP-only cookies or memory) |
+| Dev Tools | Cursor AI, React Compiler, ESLint, Prettier |
+
+## 📁 Project Structure
+
+```
+habit-tracker-frontend/
+├── app/
+│   ├── login/          # Login page
+│   ├── signup/         # Signup page (optional)
+│   ├── habits/         # List & manage habits
+│   ├── layout.tsx
+│   └── page.tsx
+├── components/         # Reusable UI components
+├── lib/
+│   ├── api.ts          # Axios instance
+│   └── auth.ts         # Auth utilities
+├── public/
+├── styles/
+│   └── globals.css
+├── package.json
+└── README.md
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🧰 Getting Started
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 1️⃣ Install Dependencies
+```bash
+npm install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 2️⃣ Run Dev Server
+```bash
+npm run dev
+```
 
-## Learn More
+The app will be available at:
 
-To learn more about Next.js, take a look at the following resources:
+👉 http://localhost:3000
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🔗 Backend API (Required)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Set your backend URL (Spring Boot server):
 
-## Deploy on Vercel
+Create `.env.local`:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🔐 Authentication Flow
+
+The frontend connects to:
+
+- `POST /api/auth/login`
+- `POST /api/auth/signup`
+- `GET  /api/users/me`
+
+We store the JWT token in **memory** or **HTTP-only cookie** (depending on the implementation).
+
+After login:
+- Save token
+- Redirect user to `/habits`
+
+## 📘 Pages Overview
+
+### 🟦 Login Page (`/login`)
+- Email + Password form  
+- Calls `POST /auth/login`
+- On success → redirects to `/habits`
+
+### 🟩 Habits Page (`/habits`)
+- Fetches habits via `GET /habits` with Bearer token
+- Displays:
+  - Habit name
+  - Description
+  - Button to mark completion
+  - Button to delete
+
+### 🟧 Habit Completions
+Each habit:
+- `POST /habits/{id}/completions`
+- `DELETE /habits/{id}/completions/{date}`
+- `GET /habits/{id}/completions`
+
+These endpoints integrate directly into your UI.
+
+## 🌈 Styling
+
+The project uses **Tailwind CSS**:
+
+```tsx
+<h1 className="text-2xl font-bold text-gray-800">My Habits</h1>
+```
+
+## 🔌 Axios Integration
+
+`lib/api.ts` contains your Axios client:
+
+```ts
+import axios from "axios";
+
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+});
+
+export default api;
+```
+
+## 🔍 Running Lint
+```bash
+npm run lint
+```
+
+## 📦 Deployment
+
+Recommended: **Vercel**
+
+Set env variable:
+```
+NEXT_PUBLIC_API_BASE_URL=https://your-backend-url/api
+```
+
+## 🤝 Contributing
+
+PRs welcome. Use Cursor AI as a copilot.
+
+## 📄 License
+
+MIT License.
