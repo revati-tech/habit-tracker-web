@@ -42,3 +42,16 @@ export const login = async (
   );
   return response.data;
 };
+
+// Habit interfaces and functions
+export interface Habit {
+  id: number;
+  name: string;
+  description?: string;
+}
+
+// Get all habits for the current user
+export const getHabits = async (): Promise<Habit[]> => {
+  const response = await apiClient.get<Habit[]>("/habits");
+  return response.data;
+};
