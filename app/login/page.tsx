@@ -21,8 +21,8 @@ export default function LoginPage() {
       if (response.token) {
         // Save token to localStorage
         localStorage.setItem("token", response.token);
-        // Redirect to home page or dashboard
-        router.push("/");
+        // Redirect to habits dashboard
+        router.push("/habits");
       } else {
         setError("Login failed: No token received");
       }
