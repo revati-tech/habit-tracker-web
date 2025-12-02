@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getHabits, createHabit, type Habit } from "@/lib/api";
+import { useScrollToNewHabit } from "@/hooks/useScrollToNewHabit";
 
 export default function HabitsPage() {
   const [habits, setHabits] = useState<Habit[]>([]);
@@ -13,6 +14,7 @@ export default function HabitsPage() {
   const [newHabitDescription, setNewHabitDescription] = useState("");
   const [completedHabits, setCompletedHabits] = useState<Set<number>>(new Set());
   const [isCreating, setIsCreating] = useState(false);
+  const [newlyCreatedHabitId, setNewlyCreatedHabitId] = useState<number | null>(null);
   const router = useRouter();
 
   // Check if user is authenticated
@@ -24,6 +26,13 @@ export default function HabitsPage() {
     }
     fetchHabits();
   }, [router]);
+
+  // Scroll to newly created habit
+  useScrollToNewHabit({
+    newlyCreatedHabitId,
+    habits,
+    onScrollComplete: () => setNewlyCreatedHabitId(null),
+  });
 
   const fetchHabits = async () => {
     try {
@@ -61,7 +70,7 @@ export default function HabitsPage() {
       setIsCreating(true);
       setError("");
       
-      await createHabit({
+      const newHabit = await createHabit({
         name: newHabitName.trim(),
         description: newHabitDescription.trim() || undefined,
       });
@@ -70,6 +79,9 @@ export default function HabitsPage() {
       setNewHabitName("");
       setNewHabitDescription("");
       setShowCreateForm(false);
+      
+      // Store the newly created habit ID to scroll to it
+      setNewlyCreatedHabitId(newHabit.id);
       
       // Refresh habits list
       await fetchHabits();
@@ -235,8 +247,9 @@ export default function HabitsPage() {
               const isCompleted = completedHabits.has(habit.id);
               return (
                 <div
+                  id={`habit-${habit.id}`}
                   key={habit.id}
-                  className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
+                  className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow transition-all duration-300"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
