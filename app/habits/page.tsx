@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getHabits, type Habit } from "@/lib/api";
+import { getHabits, createHabit, type Habit } from "@/lib/api";
 
 export default function HabitsPage() {
   const [habits, setHabits] = useState<Habit[]>([]);
@@ -12,6 +12,7 @@ export default function HabitsPage() {
   const [newHabitName, setNewHabitName] = useState("");
   const [newHabitDescription, setNewHabitDescription] = useState("");
   const [completedHabits, setCompletedHabits] = useState<Set<number>>(new Set());
+  const [isCreating, setIsCreating] = useState(false);
   const router = useRouter();
 
   // Check if user is authenticated
@@ -48,14 +49,41 @@ export default function HabitsPage() {
     router.push("/login");
   };
 
-  // Placeholder handlers for UX (to be implemented)
-  const handleCreateHabit = (e: React.FormEvent) => {
+  const handleCreateHabit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Create habit:", { name: newHabitName, description: newHabitDescription });
-    // TODO: Implement create habit API call
-    setNewHabitName("");
-    setNewHabitDescription("");
-    setShowCreateForm(false);
+    
+    if (!newHabitName.trim()) {
+      setError("Habit name is required");
+      return;
+    }
+
+    try {
+      setIsCreating(true);
+      setError("");
+      
+      await createHabit({
+        name: newHabitName.trim(),
+        description: newHabitDescription.trim() || undefined,
+      });
+      
+      // Reset form
+      setNewHabitName("");
+      setNewHabitDescription("");
+      setShowCreateForm(false);
+      
+      // Refresh habits list
+      await fetchHabits();
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        // Unauthorized - redirect to login
+        localStorage.removeItem("token");
+        router.push("/login");
+      } else {
+        setError(err.response?.data?.message || "Failed to create habit. Please try again.");
+      }
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const handleDeleteHabit = (habitId: number) => {
@@ -122,7 +150,10 @@ export default function HabitsPage() {
         {/* Create habit button/form */}
         {!showCreateForm ? (
           <button
-            onClick={() => setShowCreateForm(true)}
+            onClick={() => {
+              setShowCreateForm(true);
+              setError("");
+            }}
             className="mb-6 w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           >
             + Add New Habit
@@ -163,9 +194,10 @@ export default function HabitsPage() {
             <div className="flex gap-3">
               <button
                 type="submit"
-                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition duration-200"
+                disabled={isCreating}
+                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Create Habit
+                {isCreating ? "Creating..." : "Create Habit"}
               </button>
               <button
                 type="button"
@@ -173,8 +205,10 @@ export default function HabitsPage() {
                   setShowCreateForm(false);
                   setNewHabitName("");
                   setNewHabitDescription("");
+                  setError("");
                 }}
-                className="px-6 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-lg transition duration-200"
+                disabled={isCreating}
+                className="px-6 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>

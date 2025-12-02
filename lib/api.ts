@@ -55,3 +55,17 @@ export const getHabits = async (): Promise<Habit[]> => {
   const response = await apiClient.get<Habit[]>("/habits");
   return response.data;
 };
+
+// Create habit request interface
+export interface CreateHabitRequest {
+  name: string;
+  description?: string;
+}
+
+// Create a new habit
+export const createHabit = async (
+  habitData: CreateHabitRequest
+): Promise<Habit> => {
+  const response = await apiClient.post<Habit>("/habits", habitData);
+  return response.data;
+};
