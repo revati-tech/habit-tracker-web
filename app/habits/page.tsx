@@ -54,15 +54,9 @@ export default function HabitsPage() {
   };
 
   const handleMarkCompletion = (habitId: number) => {
-    console.log("Mark completion for habit:", habitId);
-    // Toggle completion state for UX
     setCompletedHabits((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(habitId)) {
-        newSet.delete(habitId);
-      } else {
-        newSet.add(habitId);
-      }
+      newSet.has(habitId) ? newSet.delete(habitId) : newSet.add(habitId);
       return newSet;
     });
     // TODO: Implement mark completion API call
