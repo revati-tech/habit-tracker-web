@@ -1,16 +1,17 @@
 "use client";
 
 interface DeleteConfirmDialogProps {
+  habitName: string;
   onConfirm: () => void;
   onCancel: () => void;
 }
 
-export function DeleteConfirmDialog({ onConfirm, onCancel }: DeleteConfirmDialogProps) {
+export function DeleteConfirmDialog({ habitName, onConfirm, onCancel }: DeleteConfirmDialogProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 max-w-md w-full mx-4">
         <p className="text-gray-900 dark:text-white mb-6">
-          Are you sure you want to delete this habit?
+          Are you sure you want to delete habit <strong>{habitName}</strong>?
         </p>
         <div className="flex gap-3 justify-end">
           <button

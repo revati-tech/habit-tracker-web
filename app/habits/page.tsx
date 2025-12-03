@@ -90,6 +90,10 @@ export default function HabitsPage() {
     return <LoadingSpinner />;
   }
 
+  const habitToDeleteData = habitToDelete !== null 
+    ? habits.find((h) => h.id === habitToDelete)
+    : null;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 px-4 py-8">
       <div className="max-w-4xl mx-auto">
@@ -115,8 +119,9 @@ export default function HabitsPage() {
         {error && <ErrorMessage message={error} />}
 
         {/* Delete confirmation dialog */}
-        {habitToDelete !== null && (
+        {habitToDeleteData && (
           <DeleteConfirmDialog
+            habitName={habitToDeleteData.name}
             onConfirm={confirmDelete}
             onCancel={() => setHabitToDelete(null)}
           />
