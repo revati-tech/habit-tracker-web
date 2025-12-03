@@ -3,12 +3,13 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { type Habit } from "@/lib/api";
-import { useScrollToNewHabit } from "@/hooks/useScrollToNewHabit";
-import { useHabits } from "@/hooks/useHabits";
+import { useScrollToNewHabit } from "./useScrollToNewHabit";
+import { useHabits } from "./useHabits";
 import { CreateHabitForm } from "./CreateHabitForm";
 import { HabitCard } from "./HabitCard";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { EmptyState } from "./EmptyState";
+import { ErrorMessage } from "./ErrorMessage";
 
 export default function HabitsPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -86,11 +87,7 @@ export default function HabitsPage() {
         </div>
 
         {/* Error message */}
-        {error && (
-          <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
-            {error}
-          </div>
-        )}
+        {error && <ErrorMessage message={error} />}
 
         {/* Create habit button/form */}
         {!showCreateForm ? (

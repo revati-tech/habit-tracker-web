@@ -27,3 +27,4 @@ export function useScrollToNewHabit({
     }, 100);
   }, [newlyCreatedHabitId, habits, onScrollComplete]);
 }
+
