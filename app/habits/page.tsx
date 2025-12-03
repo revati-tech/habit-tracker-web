@@ -10,11 +10,13 @@ import { HabitCard } from "./HabitCard";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { EmptyState } from "./EmptyState";
 import { ErrorMessage } from "./ErrorMessage";
+import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 
 export default function HabitsPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [completedHabits, setCompletedHabits] = useState<Set<number>>(new Set());
   const [newlyCreatedHabitId, setNewlyCreatedHabitId] = useState<number | null>(null);
+  const [habitToDelete, setHabitToDelete] = useState<number | null>(null);
   const router = useRouter();
 
   const { habits, isLoading, error, refetch } = useHabits();
@@ -45,8 +47,15 @@ export default function HabitsPage() {
     await refetch();
   };
 
-  const handleDeleteHabit = async (habitId: number) => {
-    if (!confirm("Are you sure you want to delete this habit?")) return;
+  const handleDeleteHabit = (habitId: number) => {
+    setHabitToDelete(habitId);
+  };
+
+  const confirmDelete = async () => {
+    if (habitToDelete === null) return;
+
+    const habitId = habitToDelete;
+    setHabitToDelete(null);
 
     try {
       await deleteHabit(habitId);
@@ -105,6 +114,14 @@ export default function HabitsPage() {
         {/* Error message */}
         {error && <ErrorMessage message={error} />}
 
+        {/* Delete confirmation dialog */}
+        {habitToDelete !== null && (
+          <DeleteConfirmDialog
+            onConfirm={confirmDelete}
+            onCancel={() => setHabitToDelete(null)}
+          />
+        )}
+
         {/* Create habit button/form */}
         {!showCreateForm ? (
           <button
@@ -131,7 +148,7 @@ export default function HabitsPage() {
           <div className="space-y-4">
             {habits.map((habit) => (
               <HabitCard
-                  key={habit.id}
+                key={habit.id}
                 habit={habit}
                 isCompleted={completedHabits.has(habit.id)}
                 onToggleCompletion={handleMarkCompletion}
