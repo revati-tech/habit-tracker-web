@@ -2,19 +2,19 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getHabits, type Habit } from "@/lib/api";
+import { type Habit } from "@/lib/api";
 import { useScrollToNewHabit } from "@/hooks/useScrollToNewHabit";
+import { useHabits } from "@/hooks/useHabits";
 import { CreateHabitForm } from "./CreateHabitForm";
 import { HabitCard } from "./HabitCard";
 
 export default function HabitsPage() {
-  const [habits, setHabits] = useState<Habit[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [completedHabits, setCompletedHabits] = useState<Set<number>>(new Set());
   const [newlyCreatedHabitId, setNewlyCreatedHabitId] = useState<number | null>(null);
   const router = useRouter();
+
+  const { habits, isLoading, error, refetch } = useHabits();
 
   // Check if user is authenticated
   useEffect(() => {
@@ -23,8 +23,8 @@ export default function HabitsPage() {
       router.push("/login");
       return;
     }
-    fetchHabits();
-  }, [router]);
+    refetch();
+  }, [router, refetch]);
 
   // Scroll to newly created habit
   useScrollToNewHabit({
@@ -32,25 +32,6 @@ export default function HabitsPage() {
     habits,
     onScrollComplete: () => setNewlyCreatedHabitId(null),
   });
-
-  const fetchHabits = async () => {
-    try {
-      setIsLoading(true);
-      const habitsData = await getHabits();
-      setHabits(habitsData);
-      setError("");
-    } catch (err: any) {
-      if (err.response?.status === 401) {
-        // Unauthorized - redirect to login
-        localStorage.removeItem("token");
-        router.push("/login");
-      } else {
-        setError(err.response?.data?.message || "Failed to load habits");
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -60,7 +41,7 @@ export default function HabitsPage() {
   const handleHabitCreated = async (newHabit: Habit) => {
     setShowCreateForm(false);
     setNewlyCreatedHabitId(newHabit.id);
-    await fetchHabits();
+    await refetch();
   };
 
   const handleDeleteHabit = (habitId: number) => {
@@ -127,10 +108,7 @@ export default function HabitsPage() {
         {/* Create habit button/form */}
         {!showCreateForm ? (
           <button
-            onClick={() => {
-              setShowCreateForm(true);
-              setError("");
-            }}
+            onClick={() => setShowCreateForm(true)}
             className="mb-6 w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           >
             + Add New Habit
@@ -138,10 +116,7 @@ export default function HabitsPage() {
         ) : (
           <CreateHabitForm
             onSuccess={handleHabitCreated}
-            onCancel={() => {
-              setShowCreateForm(false);
-              setError("");
-            }}
+            onCancel={() => setShowCreateForm(false)}
           />
         )}
 
