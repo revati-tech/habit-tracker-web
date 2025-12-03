@@ -74,3 +74,22 @@ export const createHabit = async (
 export const deleteHabit = async (habitId: number): Promise<void> => {
   await apiClient.delete(`/habits/${habitId}`);
 };
+
+// Mark habit as completed for a specific date
+export const markHabitCompleted = async (
+  habitId: number,
+  date?: string
+): Promise<void> => {
+  const url = date
+    ? `/habits/${habitId}/completions?date=${date}`
+    : `/habits/${habitId}/completions`;
+  await apiClient.post(url);
+};
+
+// Unmark habit completion for a specific date
+export const unmarkHabitCompleted = async (
+  habitId: number,
+  date: string
+): Promise<void> => {
+  await apiClient.delete(`/habits/${habitId}/completions/${date}`);
+};

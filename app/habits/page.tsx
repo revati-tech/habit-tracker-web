@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { type Habit, deleteHabit } from "@/lib/api";
+import { type Habit, deleteHabit, markHabitCompleted, unmarkHabitCompleted } from "@/lib/api";
 import { useScrollToNewHabit } from "./useScrollToNewHabit";
 import { useHabits } from "./useHabits";
 import { CreateHabitForm } from "./CreateHabitForm";
@@ -77,13 +77,33 @@ export default function HabitsPage() {
     }
   };
 
-  const handleMarkCompletion = (habitId: number) => {
-    setCompletedHabits((prev) => {
-      const newSet = new Set(prev);
-      newSet.has(habitId) ? newSet.delete(habitId) : newSet.add(habitId);
-      return newSet;
-    });
-    // TODO: Implement mark completion API call
+  const handleMarkCompletion = async (habitId: number) => {
+    const isCurrentlyCompleted = completedHabits.has(habitId);
+    const today = new Date().toISOString().split("T")[0]; // Format: YYYY-MM-DD
+
+    try {
+      if (isCurrentlyCompleted) {
+        // Unmark completion
+        await unmarkHabitCompleted(habitId, today);
+      } else {
+        // Mark completion (defaults to current date)
+        await markHabitCompleted(habitId);
+      }
+
+      // Update state only after API succeeds
+      setCompletedHabits((prev) => {
+        const newSet = new Set(prev);
+        isCurrentlyCompleted ? newSet.delete(habitId) : newSet.add(habitId);
+        return newSet;
+      });
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        router.push("/login");
+      } else {
+        alert(err.response?.data?.message || "Failed to update habit completion. Please try again.");
+      }
+    }
   };
 
   if (isLoading) {
