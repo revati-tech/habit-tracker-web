@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getHabits, type Habit } from "@/lib/api";
 
@@ -33,6 +33,11 @@ export function useHabits(): UseHabitsReturn {
       setIsLoading(false);
     }
   }, [router]);
+
+  // Auto-fetch on mount
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
   return {
     habits,

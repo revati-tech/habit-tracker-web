@@ -23,10 +23,8 @@ export default function HabitsPage() {
     const token = localStorage.getItem("token");
     if (!token) {
       router.push("/login");
-      return;
     }
-    refetch();
-  }, [router, refetch]);
+  }, [router]);
 
   // Scroll to newly created habit
   useScrollToNewHabit({
