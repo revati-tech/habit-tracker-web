@@ -69,3 +69,8 @@ export const createHabit = async (
   const response = await apiClient.post<Habit>("/habits", habitData);
   return response.data;
 };
+
+// Delete a habit
+export const deleteHabit = async (habitId: number): Promise<void> => {
+  await apiClient.delete(`/habits/${habitId}`);
+};

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { type Habit } from "@/lib/api";
+import { type Habit, deleteHabit } from "@/lib/api";
 import { useScrollToNewHabit } from "./useScrollToNewHabit";
 import { useHabits } from "./useHabits";
 import { CreateHabitForm } from "./CreateHabitForm";
@@ -45,10 +45,26 @@ export default function HabitsPage() {
     await refetch();
   };
 
-  const handleDeleteHabit = (habitId: number) => {
-    if (confirm("Are you sure you want to delete this habit?")) {
-      console.log("Delete habit:", habitId);
-      // TODO: Implement delete habit API call
+  const handleDeleteHabit = async (habitId: number) => {
+    if (!confirm("Are you sure you want to delete this habit?")) return;
+
+    try {
+      await deleteHabit(habitId);
+      // Remove from completed set if it was there
+      setCompletedHabits((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(habitId);
+        return newSet;
+      });
+      // Refresh habits list
+      await refetch();
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        router.push("/login");
+      } else {
+        alert(err.response?.data?.message || "Failed to delete habit. Please try again.");
+      }
     }
   };
 
@@ -115,7 +131,7 @@ export default function HabitsPage() {
           <div className="space-y-4">
             {habits.map((habit) => (
               <HabitCard
-                key={habit.id}
+                  key={habit.id}
                 habit={habit}
                 isCompleted={completedHabits.has(habit.id)}
                 onToggleCompletion={handleMarkCompletion}
