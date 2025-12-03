@@ -8,6 +8,7 @@ import { useHabits } from "@/hooks/useHabits";
 import { CreateHabitForm } from "./CreateHabitForm";
 import { HabitCard } from "./HabitCard";
 import { LoadingSpinner } from "./LoadingSpinner";
+import { EmptyState } from "./EmptyState";
 
 export default function HabitsPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -116,17 +117,11 @@ export default function HabitsPage() {
 
         {/* Habits list */}
         {habits.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-12 text-center">
-            <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
-              No habits found.
-            </p>
-            <button
-              onClick={() => setShowCreateForm(true)}
-              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition duration-200"
-            >
-              Create Your First Habit
-            </button>
-          </div>
+          <EmptyState
+            message="No habits found."
+            actionLabel="Create Your First Habit"
+            onAction={() => setShowCreateForm(true)}
+          />
         ) : (
           <div className="space-y-4">
             {habits.map((habit) => (
