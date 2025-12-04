@@ -88,23 +88,8 @@ export default function LoginPage() {
               />
             </div>
 
-            <div className="flex items-center justify-between">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                />
-                <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                  Remember me
-                </span>
-              </label>
-              <a
-                href="#"
-                className="text-sm text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
-              >
-                Forgot password?
-              </a>
-            </div>
+            {/* TODO: Implement "Remember Me" functionality */}
+            {/* TODO: Implement "Forgot Password" functionality */}
 
             <button
               type="submit"
