@@ -50,6 +50,7 @@ export interface SignupRequest {
 }
 
 export interface SignupResponse {
+  token?: string;
   message?: string;
 }
 
