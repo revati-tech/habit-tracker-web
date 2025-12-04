@@ -93,3 +93,20 @@ export const unmarkHabitCompleted = async (
 ): Promise<void> => {
   await apiClient.delete(`/habits/${habitId}/completions/${date}`);
 };
+
+// Completion interface
+export interface HabitCompletion {
+  habitId: number;
+  habitName: string;
+  habitDescription?: string;
+  completionDate: string;
+}
+
+// Get all completions for a specific date (defaults to today)
+export const getCompletions = async (date?: string): Promise<HabitCompletion[]> => {
+  const url = date
+    ? `/habits/completions?date=${date}`
+    : `/habits/completions`;
+  const response = await apiClient.get<HabitCompletion[]>(url);
+  return response.data;
+};
