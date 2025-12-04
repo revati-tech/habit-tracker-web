@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { login } from "@/lib/api";
+import { signup } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
-export default function LoginPage() {
+export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -17,18 +17,12 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await login({ email, password });
-      if (response.token) {
-        // Save token to localStorage
-        localStorage.setItem("token", response.token);
-        // Redirect to habits dashboard
-        router.push("/habits");
-      } else {
-        setError("Login failed: No token received");
-      }
+      await signup({ email, password });
+      // Redirect to login page after successful signup
+      router.push("/login");
     } catch (err: any) {
       setError(
-        err.response?.data?.message || "Login failed. Please try again."
+        err.response?.data?.message || "Signup failed. Please try again."
       );
     } finally {
       setIsLoading(false);
@@ -40,10 +34,10 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
           <h1 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-2">
-            Welcome Back
+            Create Account
           </h1>
           <p className="text-center text-gray-600 dark:text-gray-400 mb-8">
-            Sign in to your account
+            Sign up to get started
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -88,40 +82,22 @@ export default function LoginPage() {
               />
             </div>
 
-            <div className="flex items-center justify-between">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                />
-                <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                  Remember me
-                </span>
-              </label>
-              <a
-                href="#"
-                className="text-sm text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
-              >
-                Forgot password?
-              </a>
-            </div>
-
             <button
               type="submit"
               disabled={isLoading}
               className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             >
-              {isLoading ? "Signing in..." : "Sign In"}
+              {isLoading ? "Creating account..." : "Sign Up"}
             </button>
           </form>
 
           <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-            Don't have an account?{" "}
+            Already have an account?{" "}
             <a
-              href="/signup"
+              href="/login"
               className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 font-medium"
             >
-              Sign up
+              Sign in
             </a>
           </p>
         </div>
@@ -129,3 +105,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

@@ -43,6 +43,26 @@ export const login = async (
   return response.data;
 };
 
+// Signup function
+export interface SignupRequest {
+  email: string;
+  password: string;
+}
+
+export interface SignupResponse {
+  message?: string;
+}
+
+export const signup = async (
+  credentials: SignupRequest
+): Promise<SignupResponse> => {
+  const response = await apiClient.post<SignupResponse>(
+    "/auth/signup",
+    credentials
+  );
+  return response.data;
+};
+
 // Habit interfaces and functions
 export interface Habit {
   id: number;
