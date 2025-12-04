@@ -130,3 +130,9 @@ export const getCompletions = async (date?: string): Promise<HabitCompletion[]> 
   const response = await apiClient.get<HabitCompletion[]>(url);
   return response.data;
 };
+
+// Get all completions for a specific habit
+export const getHabitCompletions = async (habitId: number): Promise<HabitCompletion[]> => {
+  const response = await apiClient.get<HabitCompletion[]>(`/habits/${habitId}/completions`);
+  return response.data;
+};
