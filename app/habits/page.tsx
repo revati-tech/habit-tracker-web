@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { type Habit, deleteHabit, markHabitCompleted, unmarkHabitCompleted } from "@/lib/api";
+import { type Habit, deleteHabit } from "@/lib/api";
 import { useScrollToNewHabit } from "./useScrollToNewHabit";
 import { useHabits } from "./useHabits";
+import { useHabitCompletion } from "./useHabitCompletion";
 import { CreateHabitForm } from "./CreateHabitForm";
 import { HabitCard } from "./HabitCard";
 import { LoadingSpinner } from "./LoadingSpinner";
@@ -14,12 +15,12 @@ import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 
 export default function HabitsPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [completedHabits, setCompletedHabits] = useState<Set<number>>(new Set());
   const [newlyCreatedHabitId, setNewlyCreatedHabitId] = useState<number | null>(null);
   const [habitToDelete, setHabitToDelete] = useState<number | null>(null);
   const router = useRouter();
 
   const { habits, isLoading, error, refetch } = useHabits();
+  const { completedHabits, toggleCompletion, removeFromCompleted } = useHabitCompletion();
 
   // Check if user is authenticated
   useEffect(() => {
@@ -60,11 +61,7 @@ export default function HabitsPage() {
     try {
       await deleteHabit(habitId);
       // Remove from completed set if it was there
-      setCompletedHabits((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(habitId);
-        return newSet;
-      });
+      removeFromCompleted(habitId);
       // Refresh habits list
       await refetch();
     } catch (err: any) {
@@ -77,34 +74,6 @@ export default function HabitsPage() {
     }
   };
 
-  const handleMarkCompletion = async (habitId: number) => {
-    const isCurrentlyCompleted = completedHabits.has(habitId);
-    const today = new Date().toISOString().split("T")[0]; // Format: YYYY-MM-DD
-
-    try {
-      if (isCurrentlyCompleted) {
-        // Unmark completion
-        await unmarkHabitCompleted(habitId, today);
-      } else {
-        // Mark completion (defaults to current date)
-        await markHabitCompleted(habitId);
-      }
-
-      // Update state only after API succeeds
-      setCompletedHabits((prev) => {
-        const newSet = new Set(prev);
-        isCurrentlyCompleted ? newSet.delete(habitId) : newSet.add(habitId);
-        return newSet;
-      });
-    } catch (err: any) {
-      if (err.response?.status === 401) {
-        localStorage.removeItem("token");
-        router.push("/login");
-      } else {
-        alert(err.response?.data?.message || "Failed to update habit completion. Please try again.");
-      }
-    }
-  };
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -176,7 +145,7 @@ export default function HabitsPage() {
                 key={habit.id}
                 habit={habit}
                 isCompleted={completedHabits.has(habit.id)}
-                onToggleCompletion={handleMarkCompletion}
+                onToggleCompletion={toggleCompletion}
                 onDelete={handleDeleteHabit}
               />
             ))}
