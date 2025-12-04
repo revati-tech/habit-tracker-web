@@ -51,7 +51,6 @@ export interface SignupRequest {
 
 export interface SignupResponse {
   token?: string;
-  message?: string;
 }
 
 export const signup = async (
