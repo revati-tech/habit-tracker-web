@@ -1,4 +1,5 @@
 import type { HabitCompletion } from "@/lib/api";
+import { getTodayDate } from "@/lib/dateUtils";
 
 /**
  * Get calendar information for a given month
@@ -47,12 +48,14 @@ export const isToday = (date: string): boolean => {
 };
 
 /**
- * Check if a date is in the future
+ * Check if a date is in the future (including tomorrow)
  * @param date - The date to check (YYYY-MM-DD format)
- * @returns True if the date is in the future
+ * @returns True if the date is after today (including tomorrow)
  */
 export const isFutureDate = (date: string): boolean => {
-  return new Date(date) > new Date();
+  const today = getTodayDate(); // Get today in YYYY-MM-DD format
+  // Compare strings directly - YYYY-MM-DD format allows lexicographic comparison
+  return date > today;
 };
 
 /**
