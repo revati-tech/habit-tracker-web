@@ -2,6 +2,8 @@
 
 import { useState, FormEvent } from "react";
 import { createHabit, type Habit } from "@/lib/api";
+import { handleApiError, getErrorMessage } from "@/lib/errorHandler";
+import { useRouter } from "next/navigation";
 
 interface CreateHabitFormProps {
   onSuccess: (habit: Habit) => void;
@@ -13,6 +15,7 @@ export function CreateHabitForm({ onSuccess, onCancel }: CreateHabitFormProps) {
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -36,15 +39,14 @@ export function CreateHabitForm({ onSuccess, onCancel }: CreateHabitFormProps) {
       setName("");
       setDescription("");
       onSuccess(newHabit);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setIsSubmitting(false);
-      if (err.response?.status === 401) {
-        localStorage.removeItem("token");
+      if (handleApiError(err, router)) {
+        // Error was handled (401), show user-friendly message
         setError("Session expired. Please log in again.");
-        // Parent's auth check will handle redirect on next render
         return;
       }
-      setError(err.response?.data?.message || "Failed to create habit. Please try again.");
+      setError(getErrorMessage(err, "Failed to create habit. Please try again."));
     }
   };
 
