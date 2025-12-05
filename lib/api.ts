@@ -68,11 +68,19 @@ export interface Habit {
   id: number;
   name: string;
   description?: string;
+  currentStreak?: number;
+  longestStreak?: number;
 }
 
 // Get all habits for the current user
 export const getHabits = async (): Promise<Habit[]> => {
   const response = await apiClient.get<Habit[]>("/habits");
+  return response.data;
+};
+
+// Get a single habit by ID
+export const getHabit = async (habitId: number): Promise<Habit> => {
+  const response = await apiClient.get<Habit>(`/habits/${habitId}`);
   return response.data;
 };
 
