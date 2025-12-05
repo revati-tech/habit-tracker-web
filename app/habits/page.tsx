@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { type Habit, deleteHabit } from "@/lib/api";
 import { handleApiError, getErrorMessage } from "@/lib/errorHandler";
+import { logout } from "@/lib/authUtils";
+import { useRequireAuth } from "./useRequireAuth";
 import { useScrollToNewHabit } from "./useScrollToNewHabit";
 import { useHabitsWithCompletions } from "./useHabitsWithCompletions";
 import { CreateHabitForm } from "./CreateHabitForm";
@@ -19,6 +21,9 @@ export default function HabitsPage() {
   const [habitToDelete, setHabitToDelete] = useState<Habit | null>(null);
   const router = useRouter();
 
+  // Require authentication - redirects to login if not authenticated
+  useRequireAuth();
+
   const {
     habits,
     completedHabits,
@@ -29,14 +34,6 @@ export default function HabitsPage() {
     refetchHabits,
   } = useHabitsWithCompletions();
 
-  // Check if user is authenticated
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/login");
-    }
-  }, [router]);
-
   // Scroll to newly created habit
   useScrollToNewHabit({
     newlyCreatedHabitId,
@@ -45,8 +42,7 @@ export default function HabitsPage() {
   });
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    router.push("/login");
+    logout(router);
   };
 
   const handleHabitCreated = async (newHabit: Habit) => {

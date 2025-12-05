@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Habit } from "@/lib/api";
+import { getStreakColor } from "@/lib/streakUtils";
 import { CompletionCalendar } from "./CompletionCalendar";
 
 interface HabitCardProps {
@@ -20,14 +21,6 @@ export function HabitCard({
   onRefreshAll,
 }: HabitCardProps) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-
-  const getStreakColor = (streak: number) => {
-    if (streak === 0) return "text-gray-500 dark:text-gray-400";
-    if (streak < 4) return "text-blue-600 dark:text-blue-400";
-    if (streak < 8) return "text-green-600 dark:text-green-400";
-    if (streak < 15) return "text-orange-600 dark:text-orange-400";
-    return "text-yellow-600 dark:text-yellow-400";
-  };
 
   const handleCalendarClose = () => {
     setIsCalendarOpen(false);

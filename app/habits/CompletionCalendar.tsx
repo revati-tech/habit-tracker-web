@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { HabitCompletion, getHabitCompletions, markHabitCompleted, unmarkHabitCompleted, getHabit, type Habit } from "@/lib/api";
 import { getDaysInMonth, formatDate, isDateCompleted, isToday, isFutureDate, MONTH_NAMES, DAY_NAMES, getAdjacentMonth } from "@/lib/calendarUtils";
+import { getErrorMessage } from "@/lib/errorHandler";
 
 interface CompletionCalendarProps {
   habit: Habit;
@@ -25,6 +26,31 @@ export function CompletionCalendar({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const loadHabitCompletions = useCallback(async () => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const data = await getHabitCompletions(habitId);
+      setCompletions(data);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to load completions"));
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [habitId]);
+
+  const loadHabitStreaks = useCallback(async () => {
+    try {
+      const updatedHabit = await getHabit(habitId);
+      setCurrentStreak(updatedHabit.currentStreak);
+      setLongestStreak(updatedHabit.longestStreak);
+    } catch (err: unknown) {
+      // Silently fail - streaks will use initial values
+      console.error("Failed to load habit streaks", err);
+    }
+  }, [habitId]);
+
   useEffect(() => {
     if (isOpen) {
       loadHabitCompletions();
@@ -32,32 +58,7 @@ export function CompletionCalendar({
       setCurrentStreak(habit.currentStreak);
       setLongestStreak(habit.longestStreak);
     }
-  }, [isOpen, habitId, habit.currentStreak, habit.longestStreak]);
-
-  const loadHabitCompletions = async () => {
-    setIsLoading(true);
-    setError("");
-    try {
-      const data = await getHabitCompletions(habitId);
-      setCompletions(data);
-    } catch (err: any) {
-      setError("Failed to load completions");
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const loadHabitStreaks = async () => {
-    try {
-      const habit = await getHabit(habitId);
-      setCurrentStreak(habit.currentStreak);
-      setLongestStreak(habit.longestStreak);
-    } catch (err: any) {
-      // Silently fail - streaks will use initial values
-      console.error("Failed to load habit streaks", err);
-    }
-  };
+  }, [isOpen, habit.currentStreak, habit.longestStreak, loadHabitCompletions]);
 
   const toggleDateCompletion = async (date: string) => {
     const isCompleted = completions.some(
@@ -73,8 +74,8 @@ export function CompletionCalendar({
       // Reload completions and streaks to update the calendar display
       await Promise.all([loadHabitCompletions(), loadHabitStreaks()]);
       // Parent will refresh when calendar closes (via onClose callback)
-    } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to update completion");
+    } catch (err: unknown) {
+      alert(getErrorMessage(err, "Failed to update completion"));
     }
   };
 
@@ -219,5 +220,6 @@ export function CompletionCalendar({
     </div>
   );
 }
+
 
 
