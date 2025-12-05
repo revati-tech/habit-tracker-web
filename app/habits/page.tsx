@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { type Habit, deleteHabit } from "@/lib/api";
+import { handleApiError, getErrorMessage } from "@/lib/errorHandler";
 import { useScrollToNewHabit } from "./useScrollToNewHabit";
-import { useHabits } from "./useHabits";
-import { useHabitCompletion } from "./useHabitCompletion";
+import { useHabitsWithCompletions } from "./useHabitsWithCompletions";
 import { CreateHabitForm } from "./CreateHabitForm";
 import { HabitCard } from "./HabitCard";
 import { LoadingSpinner } from "./LoadingSpinner";
@@ -16,11 +16,18 @@ import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 export default function HabitsPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newlyCreatedHabitId, setNewlyCreatedHabitId] = useState<number | null>(null);
-  const [habitToDelete, setHabitToDelete] = useState<number | null>(null);
+  const [habitToDelete, setHabitToDelete] = useState<Habit | null>(null);
   const router = useRouter();
 
-  const { habits, isLoading, error, refetch } = useHabits();
-  const { completedHabits, toggleCompletion, removeFromCompleted } = useHabitCompletion();
+  const {
+    habits,
+    completedHabits,
+    isLoading,
+    error,
+    toggleTodayCompletion,
+    loadAll,
+    refetchHabits,
+  } = useHabitsWithCompletions();
 
   // Check if user is authenticated
   useEffect(() => {
@@ -45,32 +52,32 @@ export default function HabitsPage() {
   const handleHabitCreated = async (newHabit: Habit) => {
     setShowCreateForm(false);
     setNewlyCreatedHabitId(newHabit.id);
-    await refetch();
+    await refetchHabits();
   };
 
-  const handleDeleteHabit = (habitId: number) => {
-    setHabitToDelete(habitId);
+  const showDeleteDialog = (habitId: number) => {
+    const habit = habits.find((h) => h.id === habitId);
+    if (habit) {
+      setHabitToDelete(habit);
+    }
   };
 
-  const confirmDelete = async () => {
+  const handleHabitDeletion = async () => {
     if (habitToDelete === null) return;
 
-    const habitId = habitToDelete;
+    const habitId = habitToDelete.id;
     setHabitToDelete(null);
 
     try {
       await deleteHabit(habitId);
-      // Remove from completed set if it was there
-      removeFromCompleted(habitId);
-      // Refresh habits list
-      await refetch();
-    } catch (err: any) {
-      if (err.response?.status === 401) {
-        localStorage.removeItem("token");
-        router.push("/login");
-      } else {
-        alert(err.response?.data?.message || "Failed to delete habit. Please try again.");
+      // Refresh both habits and completions to keep state in sync
+      await loadAll();
+    } catch (err: unknown) {
+      if (handleApiError(err, router)) {
+        // Error was handled (401)
+        return;
       }
+      alert(getErrorMessage(err, "Failed to delete habit. Please try again."));
     }
   };
 
@@ -78,10 +85,6 @@ export default function HabitsPage() {
   if (isLoading) {
     return <LoadingSpinner />;
   }
-
-  const habitToDeleteData = habitToDelete !== null 
-    ? habits.find((h) => h.id === habitToDelete)
-    : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 px-4 py-8">
@@ -108,10 +111,10 @@ export default function HabitsPage() {
         {error && <ErrorMessage message={error} />}
 
         {/* Delete confirmation dialog */}
-        {habitToDeleteData && (
+        {habitToDelete && (
           <DeleteConfirmDialog
-            habitName={habitToDeleteData.name}
-            onConfirm={confirmDelete}
+            habitName={habitToDelete.name}
+            onConfirm={handleHabitDeletion}
             onCancel={() => setHabitToDelete(null)}
           />
         )}
@@ -145,8 +148,9 @@ export default function HabitsPage() {
                 key={habit.id}
                 habit={habit}
                 isCompleted={completedHabits.has(habit.id)}
-                onToggleCompletion={toggleCompletion}
-                onDelete={handleDeleteHabit}
+                onToggleTodayCompletion={toggleTodayCompletion}
+                onDelete={showDeleteDialog}
+                onRefreshAll={loadAll}
               />
             ))}
           </div>

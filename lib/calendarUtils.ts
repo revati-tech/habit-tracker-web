@@ -78,3 +78,19 @@ export const MONTH_NAMES = [
  */
 export const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+/**
+ * Get the previous or next month date from a given date
+ * @param date - The current date
+ * @param direction - "prev" for previous month, "next" for next month
+ * @returns New Date object for the previous or next month
+ */
+export const getAdjacentMonth = (date: Date, direction: "prev" | "next"): Date => {
+  const newDate = new Date(date);
+  if (direction === "prev") {
+    newDate.setMonth(newDate.getMonth() - 1);
+  } else {
+    newDate.setMonth(newDate.getMonth() + 1);
+  }
+  return newDate;
+};
+
