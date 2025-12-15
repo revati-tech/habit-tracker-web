@@ -1,12 +1,23 @@
 import axios from "axios";
 
+// Get the API base URL from environment variable
+const getApiBaseURL = () => {
+  const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
+  // Log in production to help debug (this is safe as it's a public env var)
+  if (typeof window !== "undefined" && !baseURL.includes("localhost")) {
+    console.log("API Base URL:", baseURL);
+  }
+  return baseURL;
+};
+
 // Create an Axios client configured with environment variable for API base URL.
 // Include JSON headers and export the instance.
 export const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api",
+  baseURL: getApiBaseURL(),
   headers: {
     "Content-Type": "application/json",
   },
+  timeout: 30000, // 30 second timeout to prevent hanging requests
 });
 
 // Request interceptor to attach JWT token from localStorage
@@ -19,6 +30,25 @@ apiClient.interceptors.request.use(
     return config;
   },
   (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor for error handling
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Always log errors for debugging (including production)
+    console.error("API Error:", {
+      message: error.message,
+      code: error.code,
+      url: error.config?.url,
+      baseURL: error.config?.baseURL,
+      fullURL: error.config?.baseURL ? `${error.config.baseURL}${error.config.url}` : error.config?.url,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+    });
     return Promise.reject(error);
   }
 );

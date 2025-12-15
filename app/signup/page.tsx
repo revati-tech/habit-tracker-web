@@ -35,9 +35,32 @@ export default function SignupPage() {
         setError("Signup failed: No token received");
       }
     } catch (err: any) {
-      setError(
-        err.response?.data?.message || "Signup failed. Please try again."
-      );
+      // Handle different types of errors
+      if (err.code === "ECONNABORTED" || err.message?.includes("timeout")) {
+        setError("Request timed out. Please check your connection and try again.");
+      } else if (err.code === "ERR_NETWORK" || err.message?.includes("Network Error")) {
+        const baseURL = err.config?.baseURL || "unknown";
+        setError(
+          `Network error. Cannot reach backend at ${baseURL}. ` +
+          "Please check if the backend server is running and CORS is configured correctly."
+        );
+      } else if (err.code === "ERR_CORS" || err.message?.includes("CORS")) {
+        setError(
+          "CORS error: Backend is not allowing requests from this domain. " +
+          "Please check backend CORS configuration."
+        );
+      } else if (err.response) {
+        // Server responded with error status
+        setError(
+          err.response.data?.message || 
+          `Signup failed: ${err.response.status} ${err.response.statusText || ""}`.trim()
+        );
+      } else {
+        // Other errors (CORS, etc.)
+        const errorMsg = err.message || "Signup failed. Please check your connection and try again.";
+        setError(`${errorMsg} (Code: ${err.code || "unknown"})`);
+      }
+      console.error("Signup error:", err);
     } finally {
       setIsLoading(false);
     }
