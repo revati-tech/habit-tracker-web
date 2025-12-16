@@ -53,6 +53,46 @@ apiClient.interceptors.response.use(
   }
 );
 
+// Backend warm-up function to wake up sleeping Render services
+// Sends GET /health with long timeout and retries
+export const warmUpBackend = async (): Promise<boolean> => {
+  const maxRetries = 2;
+  const healthCheckTimeout = 60000; // 60 seconds
+  
+  // Create a separate axios instance for health check with longer timeout
+  const healthCheckClient = axios.create({
+    baseURL: getApiBaseURL(),
+    timeout: healthCheckTimeout,
+  });
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`Backend warm-up attempt ${attempt}/${maxRetries}...`);
+      await healthCheckClient.get("/health");
+      console.log("Backend is ready!");
+      return true;
+    } catch (error: any) {
+      const isLastAttempt = attempt === maxRetries;
+      
+      if (isLastAttempt) {
+        console.error("Backend warm-up failed after all retries:", {
+          message: error.message,
+          code: error.code,
+          status: error.response?.status,
+        });
+        return false;
+      }
+      
+      // Wait a bit before retrying (exponential backoff)
+      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+      console.log(`Backend warm-up attempt ${attempt} failed, retrying in ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  return false;
+};
+
 // Login function
 export interface LoginRequest {
   email: string;

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { login } from "@/lib/api";
+import { useState, useEffect } from "react";
+import { login, warmUpBackend } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
@@ -9,13 +9,30 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isWarming, setIsWarming] = useState(false);
   const router = useRouter();
+
+  // Warm up backend when page loads
+  useEffect(() => {
+    const warmUp = async () => {
+      setIsWarming(true);
+      try {
+        await warmUpBackend();
+      } catch (err) {
+        console.error("Backend warm-up error on page load:", err);
+      } finally {
+        setIsWarming(false);
+      }
+    };
+    warmUp();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setIsLoading(true);
 
+    // Proceed with login
+    setIsLoading(true);
     try {
       const response = await login({ email, password });
       if (response.token) {
@@ -75,6 +92,11 @@ export default function LoginPage() {
                 {error}
               </div>
             )}
+            {isWarming && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 px-4 py-3 rounded-lg text-sm">
+                Waking up backend server... This may take a moment.
+              </div>
+            )}
             <div>
               <label
                 htmlFor="email"
@@ -116,10 +138,10 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || isWarming}
               className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             >
-              {isLoading ? "Signing in..." : "Sign In"}
+              {isWarming ? "Waking up server..." : isLoading ? "Signing in..." : "Sign In"}
             </button>
           </form>
 
