@@ -53,6 +53,16 @@ apiClient.interceptors.response.use(
   }
 );
 
+// Get base URL without /api suffix for health check
+const getHealthCheckBaseURL = () => {
+  const apiBaseURL = getApiBaseURL();
+  // Remove /api suffix if present
+  if (apiBaseURL.endsWith("/api")) {
+    return apiBaseURL.slice(0, -4);
+  }
+  return apiBaseURL;
+};
+
 // Backend warm-up function to wake up sleeping Render services
 // Sends GET /health with long timeout and retries
 export const warmUpBackend = async (): Promise<boolean> => {
@@ -60,8 +70,9 @@ export const warmUpBackend = async (): Promise<boolean> => {
   const healthCheckTimeout = 60000; // 60 seconds
   
   // Create a separate axios instance for health check with longer timeout
+  // Health endpoint is at /health (not /api/health)
   const healthCheckClient = axios.create({
-    baseURL: getApiBaseURL(),
+    baseURL: getHealthCheckBaseURL(),
     timeout: healthCheckTimeout,
   });
 
