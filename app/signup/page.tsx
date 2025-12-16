@@ -101,7 +101,7 @@ export default function SignupPage() {
             )}
             {isWarming && (
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 px-4 py-3 rounded-lg text-sm">
-                Waking up backend server... This may take a moment.
+                Preparing to create your account... This may take a moment.
               </div>
             )}
             <div>
@@ -163,7 +163,7 @@ export default function SignupPage() {
               disabled={isLoading || isWarming}
               className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             >
-              {isWarming ? "Waking up server..." : isLoading ? "Creating account..." : "Sign Up"}
+              {isWarming ? "Preparing..." : isLoading ? "Creating account..." : "Sign Up"}
             </button>
           </form>
 
